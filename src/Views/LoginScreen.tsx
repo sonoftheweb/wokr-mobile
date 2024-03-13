@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useDispatch } from 'react-redux'
 import { useTheme, Text, TextInput, Button } from 'react-native-paper'
 import {
   StyleSheet,
@@ -7,13 +8,29 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
+import { signInWithEmail } from '../Redux/User/slice'
+import { AppDispatch } from '../Redux/store'
 
 export default function LoginScreen({ navigation }: { navigation: any }) {
   const theme = useTheme()
+  const dispatch = useDispatch<AppDispatch>()
 
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [passwordObscure, setPasswordObscure] = React.useState(true)
+
+  const handleSignIn = () => {
+    dispatch(signInWithEmail({ email, password }))
+      .then(() => {
+        console.log('yes')
+      })
+      .catch(error => {
+        console.error('Error signing in:', error)
+      })
+      .finally(() => {
+        console.log('Sign in attempt finished.')
+      })
+  }
 
   const style = StyleSheet.create({
     screen: {
@@ -102,7 +119,7 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
               mode="contained"
               buttonColor="#fff"
               textColor={theme.colors.primary}
-              onPress={() => console.log('Pressed')}
+              onPress={handleSignIn}
               style={{ shadowColor: '#000' }}
               labelStyle={{
                 fontSize: 22,

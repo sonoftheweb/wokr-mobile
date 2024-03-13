@@ -3,15 +3,27 @@ import {
   SafeAreaView,
   View,
   StyleSheet,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import { Text, TextInput, Checkbox, useTheme, Button } from 'react-native-paper'
+import {
+  Text,
+  TextInput,
+  Checkbox,
+  useTheme,
+  Button,
+  Snackbar,
+} from 'react-native-paper'
+import { supabase } from '../Utils/supabase'
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch, RootState } from '../Redux/store'
+import { signUpWithEmail } from '../Redux/User/slice'
 
 export default function RegisterScreen({ navigation }: { navigation: any }) {
   const theme = useTheme()
+  const dispatch = useDispatch<AppDispatch>()
+  const loading = useSelector((state: RootState) => state.user.loading)
 
   const fullNameRef = React.useRef<typeof TextInput>(null)
   const emailRef = React.useRef<typeof TextInput>(null)
@@ -24,30 +36,40 @@ export default function RegisterScreen({ navigation }: { navigation: any }) {
   const [passwordConfirmation, setPasswordConfirmation] = React.useState('')
   const [tosChecked, setTosChecked] = React.useState(false)
 
-  const validateAndLog = () => {
-    if (
-      !fullName ||
-      !email ||
-      !password ||
-      !passwordConfirmation ||
-      !tosChecked
-    ) {
-      Alert.alert(
-        'Error',
-        'All fields are required and Terms must be accepted.',
-      )
+  const [error, setError] = React.useState('')
+
+  const validateAndLog = async () => {
+    if (!fullName || !email || !password || !passwordConfirmation) {
+      setError('All fields must be filled out')
       return
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address')
+      return
+    }
+
+    if (password.length < 6) {
+      setError('Password should be at least 6 characters long')
+      return
+    }
+
     if (password !== passwordConfirmation) {
-      Alert.alert('Error', 'Passwords do not match.')
+      setError('Password and confirmation password do not match')
       return
     }
-    console.log('Full Name:', fullName)
-    console.log('Email:', email)
-    console.log('Password:', password)
-    console.log('Terms Accepted:', tosChecked)
+
+    dispatch(signUpWithEmail({ full_name: fullName, email, password }))
+    .then(() => {
+      navigation.navigate('Login')
+    })
+    .catch((error) => {
+      setError(error.message)
+    })
   }
 
+  // @ts-ignore
   return (
     <KeyboardAvoidingView
       style={style.screen}
@@ -110,6 +132,7 @@ export default function RegisterScreen({ navigation }: { navigation: any }) {
               mode="outlined"
               label="Password"
               placeholder="A minimum of six characters"
+              secureTextEntry
               outlineStyle={{ borderWidth: 0 }}
               value={password}
               returnKeyType="next"
@@ -126,6 +149,7 @@ export default function RegisterScreen({ navigation }: { navigation: any }) {
               mode="outlined"
               label="Retype password"
               placeholder="Retype the password"
+              secureTextEntry
               outlineStyle={{ borderWidth: 0 }}
               value={passwordConfirmation}
               onChangeText={v => setPasswordConfirmation(v)}
@@ -157,7 +181,8 @@ export default function RegisterScreen({ navigation }: { navigation: any }) {
             <Button
               mode="contained"
               buttonColor={theme.colors.primary}
-              disabled={!tosChecked}
+              loading={loading}
+              disabled={!tosChecked || loading}
               onPress={validateAndLog}
               style={{ shadowColor: '#000' }}
               labelStyle={{ fontSize: 22, paddingVertical: 5 }}
@@ -187,6 +212,19 @@ export default function RegisterScreen({ navigation }: { navigation: any }) {
               Sign in
             </Button>
           </View>
+
+          <Snackbar
+            visible={error.length > 0}
+            onDismiss={() => setError('')}
+            action={{
+              label: 'Undo',
+              onPress: () => {
+                // Do something
+              },
+            }}
+          >
+            {error}
+          </Snackbar>
         </SafeAreaView>
       </ScrollView>
     </KeyboardAvoidingView>
