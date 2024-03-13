@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { useDispatch } from 'react-redux'
-import { useTheme, Text, TextInput, Button } from 'react-native-paper'
+import { useDispatch, useSelector } from 'react-redux'
+import { useTheme, Text, TextInput, Button, Snackbar } from 'react-native-paper'
 import {
   StyleSheet,
   View,
@@ -9,20 +9,30 @@ import {
   Platform,
 } from 'react-native'
 import { signInWithEmail } from '../Redux/User/slice'
-import { AppDispatch } from '../Redux/store'
+import { AppDispatch, RootState } from '../Redux/store'
 
-export default function LoginScreen({ navigation }: { navigation: any }) {
+export default function LoginScreen({
+  navigation,
+  route,
+}: {
+  navigation: any
+  route: any
+}) {
   const theme = useTheme()
   const dispatch = useDispatch<AppDispatch>()
+  const loading = useSelector((state: RootState) => state.user.loading)
 
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [passwordObscure, setPasswordObscure] = React.useState(true)
+  const [fromRegistration, setFromRegistration] = React.useState(
+    route.params?.registered || false,
+  )
 
   const handleSignIn = () => {
     dispatch(signInWithEmail({ email, password }))
       .then(() => {
-        console.log('yes')
+        console.log('Logged in successfully')
       })
       .catch(error => {
         console.error('Error signing in:', error)
@@ -121,6 +131,8 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
               textColor={theme.colors.primary}
               onPress={handleSignIn}
               style={{ shadowColor: '#000' }}
+              disabled={loading}
+              loading={loading}
               labelStyle={{
                 fontSize: 22,
                 paddingVertical: 5,
@@ -180,6 +192,12 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
               Sign up with email
             </Button>
           </View>
+          <Snackbar
+            visible={fromRegistration}
+            onDismiss={() => setFromRegistration(false)}
+          >
+            Please check your email for a verification mail
+          </Snackbar>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

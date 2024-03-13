@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createMaterialBottomTabNavigator } from 'react-native-paper/react-navigation'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-import { User } from '@supabase/supabase-js'
+import { Session, User } from '@supabase/supabase-js'
 
 import { supabase } from '../Utils/supabase'
 import DashboardScreen from '../Views/Authed/DashboardScreen'
@@ -72,20 +72,25 @@ function MainStackNavigator() {
 }
 
 export default function NavigationStack() {
-  const [user, setUser] = React.useState<null | User>(null)
+  const [session, setSession] = React.useState<Session | null>(null)
 
   React.useEffect(() => {
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      setUser(data?.user)
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
 
-    fetchUser()
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
   }, [])
 
   return (
     <NavigationContainer>
-      {user ? <MainStackNavigator /> : <AuthStackNavigator />}
+      {session && session.user ? (
+        <MainStackNavigator />
+      ) : (
+        <AuthStackNavigator />
+      )}
     </NavigationContainer>
   )
 }

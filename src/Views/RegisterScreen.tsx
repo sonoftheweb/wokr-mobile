@@ -15,7 +15,6 @@ import {
   Button,
   Snackbar,
 } from 'react-native-paper'
-import { supabase } from '../Utils/supabase'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../Redux/store'
 import { signUpWithEmail } from '../Redux/User/slice'
@@ -61,12 +60,14 @@ export default function RegisterScreen({ navigation }: { navigation: any }) {
     }
 
     dispatch(signUpWithEmail({ full_name: fullName, email, password }))
-    .then(() => {
-      navigation.navigate('Login')
-    })
-    .catch((error) => {
-      setError(error.message)
-    })
+      .then(() => {
+        navigation.navigate('Login', {
+          registered: true,
+        })
+      })
+      .catch(error => {
+        setError(error.message)
+      })
   }
 
   // @ts-ignore
