@@ -157,7 +157,11 @@ const userSlice = createSlice({
 })
 
 export const { setUserId, setProfile } = userSlice.actions
-export const SelectUserId = (state: UserState) => state.userId
-export const GetUserFirstName = (state: UserState) =>
-  state.profile?.full_name?.split(' ')[0] || null
+export const SelectUserId = (state: { user: UserState }) => {
+  return state.user.userId
+}
+export const GetUserFirstName = (state: { user: UserState }) => {
+  return state.user.profile?.full_name?.split(' ')[0] || null
+}
+
 export default userSlice.reducer

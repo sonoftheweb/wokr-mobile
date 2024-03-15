@@ -84,6 +84,7 @@ export default function NavigationStack() {
       setSession(session)
       if (session?.user) {
         dispatch(setUserId(session.user.id))
+        dispatch(getMyProfile())
       }
     })
 
