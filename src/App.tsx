@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { View, Text, AppState } from 'react-native'
+import { View, Text } from 'react-native'
 import { useFonts } from 'expo-font'
 import NavigationStack from './Layout/Navigation'
 
