@@ -1,6 +1,9 @@
 import * as React from 'react'
 import { NavigationContainer } from '@react-navigation/native'
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import {
+  NativeStackScreenProps,
+  createNativeStackNavigator,
+} from '@react-navigation/native-stack'
 import { createMaterialBottomTabNavigator } from 'react-native-paper/react-navigation'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import { Session } from '@supabase/supabase-js'
@@ -11,8 +14,16 @@ import DashboardScreen from '../Views/Authed/DashboardScreen'
 import MyTasksScreen from '../Views/Authed/MyTasksScreen'
 import LoginScreen from '../Views/LoginScreen'
 import RegisterScreen from '../Views/RegisterScreen'
-import { SelectUserId, getMyProfile, setUserId } from '../Redux/User/slice'
+import {
+  NeedsOnboarding,
+  SelectUserId,
+  getMyProfile,
+  setUserId,
+} from '../Redux/User/slice'
 import { AppDispatch } from '../Redux/store'
+import OnboardingScreen from '../Views/Authed/OnboardingScreen'
+
+export type NavProps = NativeStackScreenProps<any>
 
 const AuthStack = createNativeStackNavigator()
 const MainStack = createNativeStackNavigator()
@@ -63,13 +74,23 @@ function AuthStackNavigator() {
 }
 
 function MainStackNavigator() {
+  // first check if requires onboarding
+  const needsOnboarding = useSelector(NeedsOnboarding)
   return (
     <MainStack.Navigator>
-      <MainStack.Screen
-        name="MainTabs"
-        component={MainTabsNavigator}
-        options={{ headerShown: false }}
-      />
+      {needsOnboarding ? (
+        <MainStack.Screen
+          name="Onboarding"
+          component={OnboardingScreen}
+          options={{ headerShown: false }}
+        />
+      ) : (
+        <MainStack.Screen
+          name="MainTabs"
+          component={MainTabsNavigator}
+          options={{ headerShown: false }}
+        />
+      )}
     </MainStack.Navigator>
   )
 }

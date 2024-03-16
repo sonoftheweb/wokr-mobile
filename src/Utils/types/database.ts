@@ -15,6 +15,7 @@ export type Database = {
           full_name: string | null
           id: string
           provider: boolean | null
+          services: Json[] | null
           updated_at: string | null
           username: string | null
           website: string | null
@@ -24,6 +25,7 @@ export type Database = {
           full_name?: string | null
           id: string
           provider?: boolean | null
+          services?: Json[] | null
           updated_at?: string | null
           username?: string | null
           website?: string | null
@@ -33,6 +35,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           provider?: boolean | null
+          services?: Json[] | null
           updated_at?: string | null
           username?: string | null
           website?: string | null
@@ -46,6 +49,27 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
+      }
+      services: {
+        Row: {
+          created_at: string
+          key: string
+          name: string
+          settings: Json
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          name: string
+          settings?: Json
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          name?: string
+          settings?: Json
+        }
+        Relationships: []
       }
     }
     Views: {

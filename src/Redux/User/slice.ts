@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { supabase } from '../../Utils/supabase'
 import { Database } from '../../Utils/types/database'
 
@@ -96,18 +96,39 @@ export const getMyProfile = createAsyncThunk<
   }
 })
 
+export const saveUserProfileChanges = createAsyncThunk<
+  void,
+  Database['public']['Tables']['profiles']['Update'],
+  { rejectValue: string; state: { user: UserState } }
+>('user/saveProfileChanges', async (profileData, thunkAPI) => {
+  const id = thunkAPI.getState().user.userId
+  if (!id) return thunkAPI.rejectWithValue('User ID is not set')
+
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update(profileData)
+      .eq('id', id)
+    if (error) throw error
+    thunkAPI.dispatch(getMyProfile() as any)
+  } catch (error: any) {
+    console.log(error)
+    return thunkAPI.rejectWithValue(error.message)
+  }
+})
+
 const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUserId(state, action: { payload: string | null }) {
+    setUserId(state, action: PayloadAction<string | null>) {
       state.userId = action.payload
     },
     setProfile(
       state,
-      action: {
-        payload: Database['public']['Tables']['profiles']['Row'] | null
-      },
+      action: PayloadAction<
+        Database['public']['Tables']['profiles']['Row'] | null
+      >,
     ) {
       state.profile = action.payload
     },
@@ -153,6 +174,17 @@ const userSlice = createSlice({
         state.error = action.payload ?? 'An error occurred'
         state.loading = false
       })
+      .addCase(saveUserProfileChanges.pending, state => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(saveUserProfileChanges.fulfilled, state => {
+        state.loading = false
+      })
+      .addCase(saveUserProfileChanges.rejected, (state, action) => {
+        state.error = action.payload ?? 'An error occurred'
+        state.loading = false
+      })
   },
 })
 
@@ -162,6 +194,11 @@ export const SelectUserId = (state: { user: UserState }) => {
 }
 export const GetUserFirstName = (state: { user: UserState }) => {
   return state.user.profile?.full_name?.split(' ')[0] || null
+}
+export const NeedsOnboarding = (state: { user: UserState }) => {
+  return state.user.profile?.full_name && state.user.profile?.provider === null
+    ? true
+    : false
 }
 
 export default userSlice.reducer
